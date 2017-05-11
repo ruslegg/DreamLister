@@ -22,14 +22,42 @@ class MainVC: UIViewController, UITableViewDelegate,UITableViewDataSource,NSFetc
         super.viewDidLoad()
         tableView.delegate=self
         tableView.dataSource=self
+        attemptFetch()
         
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        return UITableViewCell()
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ItemCell", for: indexPath) as! ItemCell
+        configureCell(cell: cell, indexPath: indexPath as NSIndexPath )
+        return cell
     }
+    
+    
+    
+    func configureCell(cell: ItemCell, indexPath: NSIndexPath){
+        let item = controller.object(at: indexPath as IndexPath)
+        cell.configureCell(item: item)
+    }
+    
+    
+    
+    
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if let sections = controller.sections{
+            let sectionInfo = sections[section]
+            return sectionInfo.numberOfObjects
+        }
         return 0
+    }
+    func numberOfSections(in tableView: UITableView) -> Int {
+        if let sections = controller.sections{
+            return sections.count
+        }
+        return 0
+    }
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 150
     }
     
     func attemptFetch(){
@@ -37,6 +65,7 @@ class MainVC: UIViewController, UITableViewDelegate,UITableViewDataSource,NSFetc
         let dateSort =  NSSortDescriptor(key: "created", ascending: false)
         fetchRequest.sortDescriptors=[dateSort]
         let controller = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+        self.controller = controller
         
         do {
             try controller.performFetch()
@@ -66,7 +95,7 @@ class MainVC: UIViewController, UITableViewDelegate,UITableViewDataSource,NSFetc
         case.update:
             if let indexPath = indexPath{
                 let cell = tableView.cellForRow(at: indexPath) as! ItemCell
-                //update data
+                configureCell(cell: cell, indexPath: indexPath as NSIndexPath)
                 break
             }
         case.move:
